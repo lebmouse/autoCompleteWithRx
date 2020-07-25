@@ -1,11 +1,12 @@
 import "./styles.css";
-import { fromEvent } from "rxjs";
+import { fromEvent, Observable } from "rxjs";
 import {
   map,
   mergeAll,
   debounceTime,
   filter,
-  distinctUntilChanged
+  distinctUntilChanged,
+  mergeMap
 } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 
@@ -58,9 +59,10 @@ const keyup$ = fromEvent($search, "keyup").pipe(
   map(event => (event.target as HTMLInputElement).value),
   distinctUntilChanged(),
   filter(query => query.trim().length > 0),
-  map(query => ajax.getJSON(`https://api.github.com/search/users?q=${query}`)),
-  mergeAll()
+  mergeMap<string, Observable<GetUsers>>(query =>
+    ajax.getJSON(`https://api.github.com/search/users?q=${query}`)
+  )
 );
 // observable 반환함
 
-keyup$.subscribe((value: GetUsers) => drawLayer(value.items));
+keyup$.subscribe(value => drawLayer(value.items));
