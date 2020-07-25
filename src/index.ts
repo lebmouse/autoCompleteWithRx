@@ -8,7 +8,8 @@ import {
   mergeMap,
   tap,
   switchMap,
-  catchError
+  catchError,
+  retry
 } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 
@@ -88,10 +89,7 @@ const user$ = keyup$.pipe(
     ajax.getJSON(`https://api.github.com/search/users?q=${query}`)
   ),
   tap(hideLoading),
-  catchError((err, caught) => {
-    console.log("서버 에러 발생하였으니 다시 호출하도럭 처리", err.value);
-    return caught;
-  })
+  retry(2)
 );
 
 const reset$ = keyup$.pipe(
