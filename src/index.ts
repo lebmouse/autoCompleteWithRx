@@ -70,7 +70,7 @@ const drawLayer = (items: UserStatus[]) => {
 
 const $search = document.getElementById("search") as HTMLInputElement;
 
-const user$ = fromEvent($search, "keyup").pipe(
+const user$ = fromEvent<KeyboardEvent>($search, "keyup").pipe(
   debounceTime(300),
   map(event => (event.target as HTMLInputElement).value),
   distinctUntilChanged(),
