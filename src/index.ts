@@ -70,10 +70,13 @@ const drawLayer = (items: UserStatus[]) => {
 
 const $search = document.getElementById("search") as HTMLInputElement;
 
-const user$ = fromEvent<KeyboardEvent>($search, "keyup").pipe(
+const keyup$ = fromEvent<KeyboardEvent>($search, "keyup").pipe(
   debounceTime(300),
   map(event => (event.target as HTMLInputElement).value),
-  distinctUntilChanged(),
+  distinctUntilChanged()
+);
+
+const user$ = keyup$.pipe(
   filter(query => query.trim().length > 0),
   tap(showLoading),
   mergeMap<string, Observable<GetUsers>>(query =>
@@ -81,6 +84,5 @@ const user$ = fromEvent<KeyboardEvent>($search, "keyup").pipe(
   ),
   tap(hideLoading)
 );
-// observable 반환함
 
 user$.subscribe(value => drawLayer(value.items));
