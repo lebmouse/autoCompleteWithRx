@@ -6,7 +6,9 @@ import {
   filter,
   distinctUntilChanged,
   mergeMap,
-  tap
+  tap,
+  switchMap,
+  catchError
 } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 
@@ -82,10 +84,14 @@ const keyup$ = fromEvent<KeyboardEvent>($search, "keyup").pipe(
 const user$ = keyup$.pipe(
   filter(query => query.trim().length > 0),
   tap(showLoading),
-  mergeMap<string, Observable<GetUsers>>(query =>
+  switchMap<string, Observable<GetUsers>>(query =>
     ajax.getJSON(`https://api.github.com/search/users?q=${query}`)
   ),
-  tap(hideLoading)
+  tap(hideLoading),
+  catchError((err, caught) => {
+    console.log("서버 에러 발생하였으니 다시 호출하도럭 처리", err.value);
+    return caught;
+  })
 );
 
 const reset$ = keyup$.pipe(
