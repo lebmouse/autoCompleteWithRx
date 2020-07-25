@@ -5,11 +5,10 @@ import {
   debounceTime,
   filter,
   distinctUntilChanged,
-  mergeMap,
   tap,
   switchMap,
-  catchError,
-  retry
+  retry,
+  finalize
 } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 
@@ -89,7 +88,8 @@ const user$ = keyup$.pipe(
     ajax.getJSON(`https://api.github.com/search/users?q=${query}`)
   ),
   tap(hideLoading),
-  retry(2)
+  retry(2),
+  finalize(hideLoading)
 );
 
 const reset$ = keyup$.pipe(
