@@ -6,7 +6,8 @@ import {
   debounceTime,
   filter,
   distinctUntilChanged,
-  mergeMap
+  mergeMap,
+  tap
 } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 
@@ -37,6 +38,21 @@ interface GetUsers {
   incomplete_results: boolean;
   items: UserStatus[];
 }
+
+const $loading = document.getElementById("loading");
+
+function showLoading() {
+  if ($loading) {
+    $loading.style.display = "block";
+  }
+}
+
+function hideLoading() {
+  if ($loading) {
+    $loading.style.display = "none";
+  }
+}
+
 const $layer = document.getElementById("suggestLayer") as HTMLUListElement;
 
 const drawLayer = (items: UserStatus[]) => {
@@ -54,15 +70,17 @@ const drawLayer = (items: UserStatus[]) => {
 
 const $search = document.getElementById("search") as HTMLInputElement;
 
-const keyup$ = fromEvent($search, "keyup").pipe(
+const user$ = fromEvent($search, "keyup").pipe(
   debounceTime(300),
   map(event => (event.target as HTMLInputElement).value),
   distinctUntilChanged(),
   filter(query => query.trim().length > 0),
+  tap(showLoading),
   mergeMap<string, Observable<GetUsers>>(query =>
     ajax.getJSON(`https://api.github.com/search/users?q=${query}`)
-  )
+  ),
+  tap(hideLoading)
 );
 // observable 반환함
 
-keyup$.subscribe(value => drawLayer(value.items));
+user$.subscribe(value => drawLayer(value.items));
