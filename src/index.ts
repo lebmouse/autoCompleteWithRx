@@ -2,7 +2,6 @@ import "./styles.css";
 import { fromEvent, Observable } from "rxjs";
 import {
   map,
-  mergeAll,
   debounceTime,
   filter,
   distinctUntilChanged,
@@ -68,6 +67,10 @@ const drawLayer = (items: UserStatus[]) => {
   }
 };
 
+function hideLayer(value: string) {
+  $layer.innerHTML = "";
+}
+
 const $search = document.getElementById("search") as HTMLInputElement;
 
 const keyup$ = fromEvent<KeyboardEvent>($search, "keyup").pipe(
@@ -87,7 +90,8 @@ const user$ = keyup$.pipe(
 
 const reset$ = keyup$.pipe(
   filter(query => query.trim().length === 0),
-  tap(v => ($layer.innerHTML = ""))
+  tap(hideLayer)
 );
 
 user$.subscribe(value => drawLayer(value.items));
+reset$.subscribe();
