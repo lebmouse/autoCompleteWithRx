@@ -8,7 +8,8 @@ import {
   tap,
   switchMap,
   retry,
-  finalize
+  finalize,
+  partition
 } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 
@@ -81,7 +82,11 @@ const keyup$ = fromEvent<KeyboardEvent>($search, "keyup").pipe(
   distinctUntilChanged()
 );
 
-const user$ = keyup$.pipe(
+const [user$, reset$] = partition((query: string) => query.trim().length > 0)(
+  keyup$
+);
+
+const filledUser$ = user$.pipe(
   filter(query => query.trim().length > 0),
   tap(showLoading),
   switchMap<string, Observable<GetUsers>>(query =>
@@ -92,10 +97,10 @@ const user$ = keyup$.pipe(
   finalize(hideLoading)
 );
 
-const reset$ = keyup$.pipe(
+const blankUser$ = reset$.pipe(
   filter(query => query.trim().length === 0),
   tap(hideLayer)
 );
 
-user$.subscribe(value => drawLayer(value.items));
-reset$.subscribe();
+filledUser$.subscribe(value => drawLayer(value.items));
+blankUser$.subscribe();
